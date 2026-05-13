@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Live Face Verification</title>
+
+    <style>
+
+        body{
+            text-align:center;
+            font-family:Arial;
+            background:#f5f5f5;
+        }
+
+        video{
+            border:3px solid black;
+            border-radius:12px;
+        }
+
+        #result{
+            margin-top:20px;
+            font-size:28px;
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>AI Live Face Verification</h1>
+
+    <video id="video"
+        width="750"
+        autoplay
+        style="transform: scaleX(-1);">
+    </video>
+
+    <canvas id="canvas"
+        width="750"
+        height="500"
+        style="display:none;">
+    </canvas>
+
+    <div id="result">
+        Scanning...
+    </div>
+
+    <script>
+
+        const video = document.getElementById('video');
+
+        navigator.mediaDevices.getUserMedia({
+            video:true
+        })
+
+        .then((stream)=>{
+            video.srcObject = stream;
+        });
+
+
+        setInterval(() => {
+
+            verifyFace();
+
+        }, 3000);
+
+
+        function verifyFace(){
+
+            const canvas =
+                document.getElementById('canvas');
+
+            const context =
+                canvas.getContext('2d');
+
+            context.setTransform(1,0,0,1,0,0);
+
+            context.translate(canvas.width,0);
+
+            context.scale(-1,1);
+
+            context.drawImage(video,0,0,750,500);
+
+            const image =
+                canvas.toDataURL('image/png');
+
+            fetch('/verify_face',{
+
+                method:'POST',
+
+                headers:{
+                    'Content-Type':'application/json'
+                },
+
+                body:JSON.stringify({
+                    image:image
+                })
+
+            })
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                document.getElementById(
+                    'result'
+                ).innerHTML = data.message;
+
+            });
+
+        }
+
+    </script>
+
+</body>
+
+</html>
